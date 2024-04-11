@@ -6,12 +6,14 @@ from django.db import models
 
 class JobSearch(models.Model):
   search_string = models.CharField(max_length=120)
-  platform = models.CharField(max_length=50)
+  platform = models.CharField(max_length=50, default='Indeed')
+  active = models.BooleanField(default=True)
 
 class LocationSearch(models.Model):
   location = models.CharField(max_length=50)
   platform = models.CharField(max_length=50)
   local_search = models.BooleanField(default=False)
+  active = models.BooleanField(default=True)
 
 class JobListing(models.Model):
   job_link = models.CharField(max_length=350)

@@ -3,6 +3,7 @@ from jobsearch.models import JobSearch, LocationSearch, JobListing
 from .skyscrape import IndeedScraper
 from .indeed_job import IndeedJob
 import re
+import time
 
 PATTERN = (r'\bmobile\b|\bjava\b|\bc#|.net\b|\bc\+\+|'
            r'\bndroid\b|\bvue\bvuejs\b|\bangular\b|'
@@ -17,7 +18,10 @@ class Command(BaseCommand):
   help = 'Description of my custom Scrape command'
 
   def add_arguments(self, parser):
-    parser.add_argument('-p', '--jobs', type=int, help='number of jobs to save to DB')
+    parser.add_argument('-j', '--jobs', type=int, help='number of jobs to save to DB')
+    parser.add_argument('-l', '--local-html', nargs='?', type=str, default='doc.html', help='use local html doc')
+    parser.add_argument('-s', '--save-html', nargs='?', type=str, default='doc.html', help='save local html doc')
+
 
 
   def save_jobs(self, scraper, count):
@@ -30,11 +34,10 @@ class Command(BaseCommand):
         continue
 
       if save_count < count:
-        job_link = job.fld_val('job_link')
-        
+        job_link = job.fld_val('job_link')        
 
         job_rec = JobListing.objects.filter(job_link=job_link)
-        if len(job_rec) > 0: next
+        if len(job_rec) > 0: continue
 
         company = job.fld_val('company')
         company_location = job.fld_val('company_location')
@@ -43,8 +46,8 @@ class Command(BaseCommand):
         apply_type = job.fld_val('apply')
         job_listing = JobListing(job_link=job_link, job_title=job_title, company=company,
                                  company_location=company_location, job_type=job_type,
-                                 apply_type=apply_type, job_search=jb_search, 
-                                 search_location=js_location)
+                                 apply_type=apply_type, job_search=self.job_search, 
+                                 search_location=self.location)
         job_listing.save()
         save_count += 1
         
@@ -59,19 +62,23 @@ class Command(BaseCommand):
     # Code for your custom command goes here
     self.stdout.write('web scrape utility ..')
     job_count = options['jobs']
-    
+    job_count = 120 if job_count == None else job_count
+
     list = JobSearch.objects.all()
     if (len(list) > 0):
       self.stdout.write(f'list: {list} {list[0].search_string}')
-    scraper = IndeedScraper('Ruby+Developer', 'Boston')
+    
     print('after ctor')
-    scraper.accumulate()
-    js_q = JobSearch.objects.filter(search_string='Ruby')
-    loc_q = LocationSearch.objects.filter(location="Boston")
-    js_location = loc_q[0] if len(loc_q) > 0 else LocationSearch(location="Boston", local_search=True)
-    jb_search = js_q[0] if len(js_q) > 0 else JobSearch(search_string='Ruby')
-    if jb_search._state.adding: jb_search.save()
-    if js_location._state.adding: js_location.save()
-    self.save_jobs(scraper, job_count)
+    
+    js_q = JobSearch.objects.filter(active=True)
+    loc_q = LocationSearch.objects.filter(active=True)
+    for js in js_q:
+      for jloc in loc_q:
+        self.job_search = js
+        self.location = jloc
+        scraper = IndeedScraper(js.search_string, jloc.location, options)
+        scraper.accumulate()
+        self.save_jobs(scraper, job_count)
+        time.sleep(4)
       
     
