@@ -8,7 +8,7 @@ import time
 PATTERN = (r'\bmobile\b|\bjava\b|\bc#|.net\b|\bc\+\+|'
            r'\bndroid\b|\bvue\bvuejs\b|\bangular\b|'
            r'\bsite\s+reliability\b|\bmulesoft\b|\blead\b|'
-           r'\bwordpress\b'
+           r'\bwordpress\b|\bmanager\b|\bdevops\b|\bcoach\b'
            )
 
 RGPAT = re.compile(PATTERN, re.IGNORECASE)

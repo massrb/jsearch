@@ -1,0 +1,20 @@
+<table>
+   <tr>
+     <th>Title</th>
+     <th>Company</th> 
+     <th>Location</th>
+     <th>Type</th>
+     <th>Apply</th>
+     <th></th>
+   </tr>
+   {% for jb in jobs %}
+   <tr>
+     <td>{{jb.job_title}}</td>
+     <td>{{jb.comany}}</td>
+     <td>{{jb.company_location}}</td>
+     <td>{{jb.job_type}}</td>
+     <td>{{jb.apply_type}}</td>
+     <td><a href="http://www.indeed.com/{{jb.job_link}}" target="_blank">apply</a></td>
+   </tr>
+   {% endfor %}
+</table>
