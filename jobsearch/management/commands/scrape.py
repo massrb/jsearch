@@ -8,7 +8,8 @@ import time
 PATTERN = (r'\bmobile\b|\bjava\b|\bc#|.net\b|\bc\+\+|'
            r'\bndroid\b|\bvue\bvuejs\b|\bangular\b|'
            r'\bsite\s+reliability\b|\bmulesoft\b|\blead\b|'
-           r'\bwordpress\b|\bmanager\b|\bdevops\b|\bcoach\b'
+           r'\bwordpress\b|\bmanager\b|\bdevops\b|\bcoach\b|'
+           r'\bcustomer\s+support\s+representative\b'
            )
 
 RGPAT = re.compile(PATTERN, re.IGNORECASE)
@@ -19,8 +20,9 @@ class Command(BaseCommand):
 
   def add_arguments(self, parser):
     parser.add_argument('-j', '--jobs', type=int, help='number of jobs to save to DB')
-    parser.add_argument('-l', '--local-html', nargs='?', type=str, default='doc.html', help='use local html doc')
-    parser.add_argument('-s', '--save-html', nargs='?', type=str, default='doc.html', help='save local html doc')
+    # parser.add_argument('-l', '--local-html', nargs='?', type=str, default='doc.html', help='use local html doc')
+    parser.add_argument('-s', '--search', nargs='?', type=str, help='search string')
+    parser.add_argument('-l', '--loc', nargs='?', type=str, help='location for search')
 
 
 
@@ -29,6 +31,8 @@ class Command(BaseCommand):
     save_count = 0
     for idx, job in enumerate(scraper.jobs):
       job_title = job.fld_val('job_title')
+      if not self.location.local_search and re.search(r'\bremote\b', job_title) == None:
+        continue
       if RGPAT.search(job_title):
         print(f'SKIP: {job_title}\n\n')
         continue
@@ -62,16 +66,23 @@ class Command(BaseCommand):
     # Code for your custom command goes here
     self.stdout.write('web scrape utility ..')
     job_count = options['jobs']
+    search = options['search']
+    location = options['loc']
     job_count = 120 if job_count == None else job_count
 
     list = JobSearch.objects.all()
     if (len(list) > 0):
       self.stdout.write(f'list: {list} {list[0].search_string}')
     
-    print('after ctor')
-    
-    js_q = JobSearch.objects.filter(active=True)
-    loc_q = LocationSearch.objects.filter(active=True)
+    if search == None:
+      js_q = JobSearch.objects.filter(active=True)
+    else: 
+      js_q = JobSearch.objects.filter(active=True, search_string=search)
+
+    if location == None:
+      loc_q = LocationSearch.objects.filter(active=True)
+    else: 
+      loc_q = LocationSearch.objects.filter(active=True, location=location)
     for js in js_q:
       for jloc in loc_q:
         self.job_search = js
@@ -79,6 +90,6 @@ class Command(BaseCommand):
         scraper = IndeedScraper(js.search_string, jloc.location, options)
         scraper.accumulate()
         self.save_jobs(scraper, job_count)
-        time.sleep(4)
+        time.sleep(5)
       
     

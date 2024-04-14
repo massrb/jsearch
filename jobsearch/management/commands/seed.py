@@ -36,17 +36,22 @@ class Command(BaseCommand):
       """Creates an address object combining different elements from the list"""
       logger.info("Creating location and job search data")
 
-      loc = LocationSearch(location='Boston', platform='Indeed', local_search=True)
+      loc = LocationSearch(location='Boston', local_search=True)
       loc.save()
 
       loc2 = LocationSearch(location='Worcester', local_search=True)
       loc2.save()
 
-      loc3 = LocationSearch(location='Nashua+NH', platform='Indeed', local_search=False)
-      loc3.save()
+      locations = ['Nashua+NH', 'DC', 'NYC', 'Hartford+CT', 'Portland+Maine', 'Burlington+VT', 'Albany+NY', 'Chicago',
+                   'Minneapolis', 'Detroit', 'Miami', 'Denver', 'Houston', 'Dallas']
+      skills = ['Ruby', 'Javascript', 'React']
 
-      js = JobSearch(search_string='Ruby')
-      js.save()
+      for area in locations:
+        place = LocationSearch(location=area)
+        place.save()
+      for skill in skills:
+        js = JobSearch(search_string=skill)
+        js.save()
       
       logger.info("Location and job search data created.")
 
