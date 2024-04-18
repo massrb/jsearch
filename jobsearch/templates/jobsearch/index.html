@@ -2,6 +2,14 @@
 
 <link rel="stylesheet" href="{% static 'jobsearch/style.css' %}">
 
+<form method='post'>
+    {% csrf_token %}
+    {{ jobsearch.as_table }}
+    </br>
+    {{ select_type.as_table }}
+    <input type='submit' value='submit'>
+</form>
+
 <table>
    <tr>
      <th>Title</th>
