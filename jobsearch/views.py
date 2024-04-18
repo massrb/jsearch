@@ -11,7 +11,9 @@ from django.http import HttpResponse
 def index(request):
   search_type = request.GET.get('js', '').lower()
   select_type = request.GET.get('filter', '').lower()
-  exclude = request.GET.get('e', '0')
+  loc = request.GET.get('loc', '').lower()
+  loc_type = request.GET.get('ltyp', '').lower()
+
   if request.method == 'POST':
     js_form = JobSearchForm(request.POST)
     filt_type = SelectTypeForm(request.POST)
@@ -27,20 +29,29 @@ def index(request):
       return render(request, "index.html", {'form':js_form})
   else:
     rec_ids = [] if search_type in [None,''] else [int(numeric_string) for numeric_string in search_type.split(',')]
-    if search_type == 'ruby':
-      js = JobSearch.objects.filter(search_string='Ruby')
-    elif search_type == 'python':
-      js = JobSearch.objects.filter(search_string='Python')
-    else:
-      jobs = JobListing.objects.all()
+    if len(rec_ids) != 0:
+      js = JobSearch.objects.filter(id__in=rec_ids)
+      print(f'{len(js)} jsearch objects')
+    loc_ids = [] if loc in [None,''] else [int(numeric_string) for numeric_string in loc.split(',')]
+    if (len(loc_ids)) != 0:
+      loc_recs = LocationSearch.objects.filter(id__in=loc_ids)
 
-    if not 'jobs' in locals():
-      all = JobListing.objects.all()
-      if exclude == '1':
-        jobs = all if not js.exists() else all.exclude(job_search=js.first())
+
+    jobs = JobListing.objects.all()
+
+    if 'js' in locals() and js.exists():
+      if select_type == 'inc':
+        jobs = jobs.filter(job_search__in=js)
       else:
-        jobs = JobListing.objects.filter(job_search=js.first())
+        jobs = jobs.exclude(job_search__in=js)
 
+    if 'loc_recs' in locals() and loc_recs.exists():
+      if loc_type == 'inc':
+        jobs = jobs.filter(search_location__in=loc_recs)
+      else:
+        jobs = jobs.exclude(search_location__in=loc_recs)
+
+    print(f'{len(jobs)} jobs')
     select_form = SelectTypeForm(initial={'selection_type': select_type})
     jobsearch_form = JobSearchForm(initial={'searches': search_type.split(',')})
     return render(request, "index.html", {'jobs': jobs, 'select_type': select_form, 'jobsearch': jobsearch_form})
