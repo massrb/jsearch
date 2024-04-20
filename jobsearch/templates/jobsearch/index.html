@@ -1,16 +1,56 @@
 {% load static %}
 
-<link rel="stylesheet" href="{% static 'jobsearch/style.css' %}">
+<!DOCTYPE html>
+<html>
+<head>
+  {% load bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+  <link rel="stylesheet" href="{% static 'jobsearch/style.css' %}">
+</head>
 
-<form method='post'>
-    {% csrf_token %}
-    {{ jobsearch.as_table }}
-    </br>
-    {{ select_type.as_table }}
-    <input type='submit' value='submit'>
+<body>
+
+<div class="container">
+  <ul class="nav bg-info">
+    <li class="nav-item">
+      <a class="nav-link link-light" href="/jobsearch">HOME</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link link-light" href="/admin">ADMIN</a>
+    </li>
+  </ul>
+  {% block content %}
+  {% endblock %}
+</div>
+</br>
+
+<form method='post' class="form-inline">
+  {% csrf_token %}
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm">
+        {{ jobsearch.as_p }}
+      </div>
+      <div class="col-sm">
+        {{ select_type.as_p }}
+      </div>
+      <div class="col-sm">
+        {{ loc_search.as_p }}
+      </div>
+      <div class="col-sm">
+        {{ loc_type.as_p }}
+      </div>
+      <div class="col-sm">
+         <input type="submit"/>
+      </div>
+    </div>
+  </div>
 </form>
 
-<table>
+<div>{{jobs|length}} Jobs</div>
+<table class="table table-striped">
    <tr>
      <th>Title</th>
      <th>Company</th> 
@@ -19,14 +59,18 @@
      <th>Apply</th>
      <th></th>
    </tr>
+   <tbody>
    {% for jb in jobs %}
-   <tr>
-     <td>{{jb.job_title}}</td>
-     <td>{{jb.comany}}</td>
-     <td>{{jb.company_location}}</td>
-     <td>{{jb.job_type}}</td>
-     <td>{{jb.apply_type}}</td>
-     <td><a href="http://www.indeed.com/{{jb.job_link}}" target="_blank">apply</a></td>
-   </tr>
+     <tr>
+       <td>{{jb.job_title}}</td>
+       <td>{{jb.comany}}</td>
+       <td>{{jb.company_location}}</td>
+       <td>{{jb.job_type}}</td>
+       <td>{{jb.apply_type}}</td>
+       <td><a href="http://www.indeed.com/{{jb.job_link}}" target="_blank">apply</a></td>
+     </tr>
    {% endfor %}
+ </tbody>
 </table>
+</body>
+</html>

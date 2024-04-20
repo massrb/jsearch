@@ -31,11 +31,20 @@ class Command(BaseCommand):
     save_count = 0
     for idx, job in enumerate(scraper.jobs):
       job_title = job.fld_val('job_title')
-      if not self.location.local_search and re.search(r'\bremote\b', job_title) == None:
+
+      if not self.location.local_search and not job.is_remote():
         continue
+
       if RGPAT.search(job_title):
         print(f'SKIP: {job_title}\n\n')
         continue
+
+      jkey = job.get_job_key()
+      if jkey != None:
+        jrecs = JobListing.objects.filter(jkey=jkey)
+        if len(jrecs) > 0:
+          print(f'skip {job_title} - already in DB')
+          continue
 
       if save_count < count:
         job_link = job.fld_val('job_link')        
@@ -43,7 +52,7 @@ class Command(BaseCommand):
         job_rec = JobListing.objects.filter(job_link=job_link)
         if len(job_rec) > 0: continue
 
-        company = job.fld_val('company')
+        company = job.fld_val('company_name')
         company_location = job.fld_val('company_location')
 
         job_type = job.fld_val('job_type')
@@ -58,7 +67,7 @@ class Command(BaseCommand):
       print(job)
       print("\n\n" + "*" * 30 + "\n\n")
 
-    print(f"{len(scraper.jobs)} jobs")
+    print(f"{len(scraper.jobs)} jobs, saved: {save_count}")
     print(scraper)
 
 

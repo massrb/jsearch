@@ -1,6 +1,7 @@
 import datetime
 from django.utils import timezone
 from django.db import models
+import re
 
 # Create your models here.
 
@@ -14,6 +15,7 @@ class LocationSearch(models.Model):
   platform = models.CharField(max_length=50)
   local_search = models.BooleanField(default=False)
   active = models.BooleanField(default=True)
+
 
 class JobListing(models.Model):
   job_link = models.CharField(max_length=350)
@@ -29,5 +31,18 @@ class JobListing(models.Model):
   update_time = models.DateTimeField(auto_now=True)
   job_search = models.ForeignKey(JobSearch, on_delete=models.CASCADE)
   search_location = models.ForeignKey(LocationSearch, on_delete=models.CASCADE)
+  jkey = models.CharField(max_length=100)
 
+  def job_key(self):
+    try:
+      mat = re.search(".*\?jk=([^&]+)", self.job_link)
+      return mat[1]
+    except Exception as e:
+      return ''
+
+  def set_jkey(self):
+    jk = self.job_key()
+    if jk != '':
+      self.jkey = jk
+      self.save()
 
