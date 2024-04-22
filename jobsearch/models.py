@@ -33,6 +33,9 @@ class JobListing(models.Model):
   search_location = models.ForeignKey(LocationSearch, on_delete=models.CASCADE)
   jkey = models.CharField(max_length=100)
 
+  def __str__(self):
+    return(f"{self.id}\n{self.job_title}\n{self.company_location}\n{self.jkey}")
+
   def job_key(self):
     try:
       mat = re.search(".*\?jk=([^&]+)", self.job_link)
